@@ -1,0 +1,32 @@
+{
+    "kind": "collectionType",
+    "collectionName": "articles",
+    "info": {
+        "singularName": "article",
+        "pluralName": "articles",
+        "displayName": "Article",
+        "description": "Blog and SEO Articles"
+    },
+    "options": {
+        "draftAndPublish": true
+    },
+    "pluginOptions": {},
+    "attributes": {
+        "title": {
+            "type": "string",
+            "required": true
+        },
+        "slug": {
+            "type": "uid",
+            "targetField": "title"
+        },
+        "content": {
+            "type": "richtext"
+        },
+        "author": {
+            "type": "relation",
+            "relation": "manyToOne",
+            "target": "api::employee.employee"
+        }
+    }
+}

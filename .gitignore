@@ -1,0 +1,26 @@
+# ===== BACKEND (Strapi) =====
+backend/.tmp/
+backend/.cache/
+backend/dist/
+backend/build/
+backend/node_modules/
+backend/.strapi/
+backend/exports/
+backend/.env
+
+# ===== FRONTEND (Next.js) =====
+frontend/.next/
+frontend/out/
+frontend/node_modules/
+frontend/.env
+frontend/.env.local
+frontend/.env.development.local
+frontend/.env.test.local
+frontend/.env.production.local
+
+# ===== OS & IDE =====
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.log
