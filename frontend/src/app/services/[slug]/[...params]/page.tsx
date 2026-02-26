@@ -74,13 +74,17 @@ async function resolveParams(paramsArray: string[]) {
     return result;
 }
 
-export async function generateMetadata({ params }: { params: { slug: string, params: string[] } }) {
-    const serviceRes = await fetchAPI('/services', { filters: { slug: { $eq: params.slug } } });
+type Props = { params: Promise<{ slug: string, params: string[] }> };
+
+export async function generateMetadata({ params }: Props) {
+    const resolvedParams = await params;
+
+    const serviceRes = await fetchAPI('/services', { filters: { slug: { $eq: resolvedParams.slug } } });
     const service = serviceRes?.data?.[0];
 
     if (!service) return { title: 'ARQO | Service not found' };
 
-    const resolved = await resolveParams(params.params);
+    const resolved = await resolveParams(resolvedParams.params);
     const { category, city } = resolved;
 
     if (!category && !city) return { title: 'ARQO | Not found' };
@@ -108,16 +112,18 @@ export async function generateMetadata({ params }: { params: { slug: string, par
     };
 }
 
-export default async function DynamicServicePage({ params }: { params: { slug: string, params: string[] } }) {
+export default async function DynamicServicePage({ params }: Props) {
+    const resolvedParams = await params;
+
     const serviceRes = await fetchAPI('/services', {
-        filters: { slug: { $eq: params.slug } },
+        filters: { slug: { $eq: resolvedParams.slug } },
         populate: ['employees', 'projects', 'reviews']
     });
 
     const service = serviceRes?.data?.[0];
     if (!service) notFound();
 
-    const resolved = await resolveParams(params.params);
+    const resolved = await resolveParams(resolvedParams.params);
     const { category, city } = resolved;
 
     if (!category && !city) notFound();
