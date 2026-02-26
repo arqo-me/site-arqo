@@ -39,14 +39,7 @@ export default async function ArticleDetailPage({ params }: Props) {
 
     return (
         <div className="min-h-screen pt-32 pb-24 bg-background selection:bg-black selection:text-white text-foreground">
-            <header className="fixed top-0 left-0 right-0 z-50 text-foreground mix-blend-difference invert">
-                <div className="container mx-auto px-6 h-24 flex items-center justify-between">
-                    <Link href="/" className="text-3xl font-light tracking-[0.2em] uppercase">ARQO</Link>
-                    <nav className="hidden md:flex gap-12 text-sm uppercase tracking-widest font-light">
-                        <Link href="/blog" className="flex items-center gap-2 hover:opacity-70 transition-opacity"><ArrowLeft className="w-4 h-4" /> В журнал</Link>
-                    </nav>
-                </div>
-            </header>
+            
 
             <main className="container mx-auto max-w-4xl relative z-10 pt-16 px-6">
                 <div className="text-xs font-medium tracking-widest text-muted mb-12 uppercase flex gap-4">
@@ -70,16 +63,10 @@ export default async function ArticleDetailPage({ params }: Props) {
                     </div>
                 )}
 
-                <article className="prose prose-lg prose-neutral max-w-none text-foreground/90 font-light leading-relaxed mb-32">
-                    <p className="text-2xl leading-normal mb-8">
-                        {article.content}
-                    </p>
-                    <div className="h-px w-full bg-black/10 my-12 hidden md:block" />
-                    <p>
-                        *Эта статья является макетом. В рабочей системе здесь будет выводиться полноценный richtext (HTML или Markdown)
-                        контент из Strapi, включая врезки, цитаты и иллюстрации, описывающие глубокий инженерный и архитектурный опыт ARQO.*
-                    </p>
-                </article>
+                <article
+                    className="prose prose-lg prose-neutral max-w-none text-foreground/90 font-light leading-relaxed mb-32"
+                    dangerouslySetInnerHTML={{ __html: article.content }}
+                />
 
             </main>
         </div>

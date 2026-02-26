@@ -36,6 +36,27 @@
             "relation": "oneToMany",
             "target": "api::project.project",
             "mappedBy": "service"
+        },
+        "reviews": {
+            "type": "relation",
+            "relation": "oneToMany",
+            "target": "api::review.review",
+            "mappedBy": "service"
+        },
+        "detailedDescription": {
+            "type": "richtext"
+        },
+        "stages": {
+            "type": "json"
+        },
+        "gallery": {
+            "type": "json"
+        },
+        "service_categories": {
+            "type": "relation",
+            "relation": "manyToMany",
+            "target": "api::service-category.service-category",
+            "mappedBy": "services"
         }
     }
 }

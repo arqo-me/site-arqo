@@ -1,0 +1,9 @@
+#!/usr/bin/expect -f
+set timeout -1
+set password "G9ekfLKG&Ef8"
+set ip "45.146.164.46"
+
+spawn ssh -o StrictHostKeyChecking=no root@$ip "cd /opt/site-arqo && docker-compose down && rm -f backend_data/.tmp/data.db && docker-compose up -d"
+expect "*?assword:*"
+send "$password\r"
+expect eof

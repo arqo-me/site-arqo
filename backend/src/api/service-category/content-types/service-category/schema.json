@@ -1,0 +1,43 @@
+{
+    "kind": "collectionType",
+    "collectionName": "service_categories",
+    "info": {
+        "singularName": "service-category",
+        "pluralName": "service-categories",
+        "displayName": "Service Category",
+        "description": "Categories for SEO (Rooms, Styles, Property Types)"
+    },
+    "options": {
+        "draftAndPublish": true
+    },
+    "pluginOptions": {},
+    "attributes": {
+        "name": {
+            "type": "string",
+            "required": true
+        },
+        "slug": {
+            "type": "uid",
+            "targetField": "name",
+            "required": true
+        },
+        "type": {
+            "type": "enumeration",
+            "enum": [
+                "room",
+                "style",
+                "property_type"
+            ],
+            "required": true
+        },
+        "description": {
+            "type": "richtext"
+        },
+        "services": {
+            "type": "relation",
+            "relation": "manyToMany",
+            "target": "api::service.service",
+            "inversedBy": "service_categories"
+        }
+    }
+}

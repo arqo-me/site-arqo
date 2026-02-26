@@ -4,30 +4,22 @@ import { ArrowRight, ArrowUpRight } from "lucide-react";
 import Image from "next/image";
 
 export default async function Home() {
-  const [projectsData, servicesData, teamData] = await Promise.all([
+  const [projectsData, servicesData, teamData, reviewsData] = await Promise.all([
     fetchAPI('/projects', { pagination: { limit: 2 }, populate: '*' }),
     fetchAPI('/services', { pagination: { limit: 4 } }),
-    fetchAPI('/employees', { pagination: { limit: 3 } })
+    fetchAPI('/employees', { pagination: { limit: 3 } }),
+    fetchAPI('/reviews', { pagination: { limit: 3 } })
   ]);
 
   const projects = projectsData?.data || [];
   const services = servicesData?.data || [];
   const team = teamData?.data || [];
+  const reviews = reviewsData?.data || [];
 
   return (
     <div className="min-h-screen bg-background text-foreground selection:bg-black selection:text-white pb-24">
       {/* HEADER */}
-      <header className="fixed top-0 left-0 right-0 z-50 glass">
-        <div className="container mx-auto px-6 h-24 flex items-center justify-between">
-          <Link href="/" className="text-4xl font-light tracking-[0.2em] uppercase">ARQO</Link>
-          <nav className="hidden md:flex gap-12 text-sm uppercase tracking-widest font-medium">
-            <Link href="/projects" className="hover:opacity-60 transition-opacity">Проекты</Link>
-            <Link href="/services" className="hover:opacity-60 transition-opacity">Услуги</Link>
-            <Link href="/team" className="hover:opacity-60 transition-opacity">О нас</Link>
-            <Link href="/contacts" className="hover:opacity-60 transition-opacity">Москва</Link>
-          </nav>
-        </div>
-      </header>
+
 
       {/* HERO SECTION */}
       <section className="relative h-screen flex flex-col justify-end pb-32 px-6 pt-32 overflow-hidden border-b border-black/10">
@@ -141,11 +133,41 @@ export default async function Home() {
         </div>
       </section>
 
+      {/* REVIEWS SECTION */}
+      {reviews.length > 0 && (
+        <section className="container mx-auto px-6 py-32 border-b border-black/10">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-24 gap-12">
+            <div className="max-w-2xl">
+              <h2 className="text-xs font-medium tracking-widest text-muted uppercase mb-8">04 / Отзывы клиентов</h2>
+              <h3 className="text-4xl md:text-5xl font-light leading-tight tracking-tight uppercase">Доверие, которое мы <span className="italic opacity-50">заслужили.</span></h3>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
+            {reviews.map((review: any) => (
+              <div key={review.documentId} className="flex flex-col h-full bg-black/5 p-8 relative">
+                <div className="text-4xl absolute -top-4 -left-2 text-black/10 font-serif leading-none">"</div>
+                <p className="text-sm font-light leading-relaxed text-foreground/90 italic flex-grow mb-8 relative z-10">
+                  «{review.text}»
+                </p>
+                <div className="border-t border-black/10 pt-6 mt-auto">
+                  <div className="font-medium tracking-wide uppercase text-sm mb-1">{review.clientName}</div>
+                  <div className="text-xs uppercase tracking-widest text-muted flex items-center justify-between">
+                    <span>Локация: {review.location || 'Москва'}</span>
+                    <span className="text-black/40">★ {review.rating}/5</span>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
       {/* TEAM EXPERTISE */}
       <section className="container mx-auto px-6 py-32">
         <div className="flex justify-between items-end mb-24">
           <div className="max-w-2xl">
-            <h2 className="text-xs font-medium tracking-widest text-muted uppercase mb-8">04 / Экспертиза</h2>
+            <h2 className="text-xs font-medium tracking-widest text-muted uppercase mb-8">05 / Экспертиза</h2>
             <h3 className="text-4xl md:text-5xl font-light leading-tight tracking-tight">Люди, создающие <br /><span className="italic opacity-50">архитектурное наследие.</span></h3>
           </div>
           <Link href="/team" className="hidden md:flex items-center gap-4 group">
@@ -173,21 +195,7 @@ export default async function Home() {
       </section>
 
       {/* FOOTER */}
-      <footer className="bg-black text-white py-24 px-6 mt-12">
-        <div className="container mx-auto flex flex-col md:flex-row justify-between items-start md:items-end gap-12">
-          <div>
-            <div className="text-6xl font-light tracking-[0.2em] uppercase mb-12">ARQO</div>
-            <div className="text-sm font-light opacity-60 max-w-sm">
-              Премиальная архитектура и ремонт квартир в Москве. Искусство создавать пространства для жизни.
-            </div>
-          </div>
-          <div className="flex flex-col gap-4 text-sm font-light uppercase tracking-widest text-right">
-            <a href="#" className="hover:opacity-60 transition-opacity">+7 (495) 000-00-00</a>
-            <a href="#" className="hover:opacity-60 transition-opacity">hello@arqo.ru</a>
-            <a href="#" className="hover:opacity-60 transition-opacity">Москва, Пресненская наб. 12</a>
-          </div>
-        </div>
-      </footer>
+
     </div>
   );
 }

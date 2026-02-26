@@ -8,21 +8,16 @@ export const metadata = {
 };
 
 export default async function ServicesPage() {
-    const { data: services } = await fetchAPI('/services');
+    const [servicesRes, citiesRes] = await Promise.all([
+        fetchAPI('/services'),
+        fetchAPI('/cities'),
+    ]);
+    const services = servicesRes?.data || [];
+    const cities = citiesRes?.data || [];
 
     return (
         <div className="min-h-screen pt-32 pb-24 bg-background selection:bg-black selection:text-white text-foreground">
-            <header className="fixed top-0 left-0 right-0 z-50 text-foreground mix-blend-difference invert">
-                <div className="container mx-auto px-6 h-24 flex items-center justify-between">
-                    <Link href="/" className="text-3xl font-light tracking-[0.2em] uppercase">ARQO</Link>
-                    <nav className="hidden md:flex gap-12 text-sm uppercase tracking-widest font-light">
-                        <Link href="/projects" className="hover:opacity-70 transition-opacity">Проекты</Link>
-                        <Link href="/services" className="hover:opacity-70 transition-opacity opacity-50">Услуги</Link>
-                        <Link href="/team" className="hover:opacity-70 transition-opacity">О нас</Link>
-                        <Link href="/contacts" className="hover:opacity-70 transition-opacity">Москва</Link>
-                    </nav>
-                </div>
-            </header>
+            
 
             <main className="container mx-auto px-6 relative z-10 pt-16">
                 <div className="mb-24">
@@ -62,7 +57,33 @@ export default async function ServicesPage() {
                         <div className="col-span-full py-12 text-center text-muted">Загрузка услуг... Убедитесь, что Strapi запущен.</div>
                     )}
                 </div>
+
+                {/* SEO Cross-Link Grid: Service × Geo */}
+                {services.length > 0 && cities.length > 0 && (
+                    <section className="mt-24 border-t border-black pt-16">
+                        <h2 className="text-sm font-medium tracking-widest text-muted uppercase mb-10">Наши услуги по локациям Москвы</h2>
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-12 gap-y-8">
+                            {services.map((service: any) => (
+                                <div key={service.documentId}>
+                                    <h3 className="text-lg font-light tracking-tight uppercase mb-4">{service.title}</h3>
+                                    <div className="flex flex-wrap gap-2">
+                                        {cities.map((city: any) => (
+                                            <Link
+                                                href={`/services/${service.slug}/${city.slug}`}
+                                                key={city.documentId}
+                                                className="text-[10px] border border-black/20 px-3 py-1.5 uppercase tracking-widest hover:bg-black hover:text-white transition-colors duration-300"
+                                            >
+                                                {city.name}
+                                            </Link>
+                                        ))}
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </section>
+                )}
             </main>
         </div>
     );
 }
+

@@ -1,62 +1,166 @@
-import { fetchAPI } from "@/lib/api";
-import Link from "next/link";
-import { ArrowLeft, ArrowRight } from "lucide-react";
-import LeadButton from "@/components/LeadButton";
-import type { Metadata, ResolvingMetadata } from "next";
+import { notFound } from 'next/navigation';
+import { fetchAPI } from '@/lib/api';
+import Link from 'next/link';
+import { ArrowLeft, ArrowRight } from 'lucide-react';
+import LeadButton from '@/components/LeadButton';
 
-type Props = {
-    params: Promise<{ slug: string }>;
-};
+export const revalidate = 10;
 
-// Next.js dynamic OpenGraph metadata
-export async function generateMetadata({ params }: Props, parent: ResolvingMetadata): Promise<Metadata> {
-    const { slug } = await params;
-    const { data } = await fetchAPI('/services', {
-        filters: { slug: { $eq: slug } },
-    });
+export async function generateStaticParams() {
+    try {
+        const [servicesData, categoriesData, citiesData] = await Promise.all([
+            fetchAPI('/services', { fields: ['slug'] }),
+            fetchAPI('/service-categories', { fields: ['slug'] }),
+            fetchAPI('/cities', { fields: ['slug'] })
+        ]);
 
-    const service = data?.[0];
+        if (!servicesData?.data) return [];
+
+        const params: any[] = [];
+
+        servicesData.data.forEach((service: any) => {
+            if (categoriesData?.data) {
+                categoriesData.data.forEach((category: any) => {
+                    params.push({ slug: service.slug, params: [category.slug] });
+                });
+            }
+
+            if (citiesData?.data) {
+                citiesData.data.forEach((city: any) => {
+                    params.push({ slug: service.slug, params: [city.slug] });
+                });
+            }
+
+            if (categoriesData?.data && citiesData?.data) {
+                categoriesData.data.forEach((category: any) => {
+                    citiesData.data.slice(0, 3).forEach((city: any) => {
+                        params.push({
+                            slug: service.slug,
+                            params: [category.slug, city.slug]
+                        });
+                    });
+                });
+            }
+        });
+
+        return params;
+    } catch (error) {
+        console.warn("Could not fetch API during build, returning empty static params.");
+        return [];
+    }
+}
+
+async function resolveParams(paramsArray: string[]) {
+    const result: { category: any, city: any } = { category: null, city: null };
+
+    if (paramsArray.length === 1) {
+        const slug = paramsArray[0];
+        const [catRes, cityRes] = await Promise.all([
+            fetchAPI('/service-categories', { filters: { slug: { $eq: slug } } }),
+            fetchAPI('/cities', { filters: { slug: { $eq: slug } } })
+        ]);
+        if (catRes?.data?.length > 0) result.category = catRes.data[0];
+        else if (cityRes?.data?.length > 0) result.city = cityRes.data[0];
+    }
+    else if (paramsArray.length === 2) {
+        const [catRes, cityRes] = await Promise.all([
+            fetchAPI('/service-categories', { filters: { slug: { $eq: paramsArray[0] } } }),
+            fetchAPI('/cities', { filters: { slug: { $eq: paramsArray[1] } } })
+        ]);
+        if (catRes?.data?.length > 0) result.category = catRes.data[0];
+        if (cityRes?.data?.length > 0) result.city = cityRes.data[0];
+    }
+
+    return result;
+}
+
+export async function generateMetadata({ params }: { params: { slug: string, params: string[] } }) {
+    const serviceRes = await fetchAPI('/services', { filters: { slug: { $eq: params.slug } } });
+    const service = serviceRes?.data?.[0];
+
+    if (!service) return { title: 'ARQO | Service not found' };
+
+    const resolved = await resolveParams(params.params);
+    const { category, city } = resolved;
+
+    if (!category && !city) return { title: 'ARQO | Not found' };
+
+    let seoTitle = `${service.title}`;
+    let seoLocative = city ? city.nameLocative : 'в Москве';
+
+    if (category && city) {
+        if (category.type === 'room') seoTitle = `${service.title} (${category.name.toLowerCase()}) ${seoLocative} | ARQO`;
+        else if (category.type === 'property_type') seoTitle = `${service.title} в ${category.name.toLowerCase()}х ${seoLocative} | ARQO`;
+        else if (category.type === 'style') seoTitle = `${service.title} в стиле ${category.name.toLowerCase()} ${seoLocative} | ARQO`;
+    }
+    else if (category) {
+        if (category.type === 'room') seoTitle = `${service.title} (${category.name.toLowerCase()}) под ключ | ARQO`;
+        else if (category.type === 'property_type') seoTitle = `${service.title} в ${category.name.toLowerCase()}х | ARQO`;
+        else if (category.type === 'style') seoTitle = `${service.title} в стиле ${category.name.toLowerCase()} | ARQO`;
+    }
+    else if (city) {
+        seoTitle = `${service.title} ${seoLocative} | Бюро ARQO`;
+    }
 
     return {
-        title: service ? `${service.title} | Услуги ARQO` : "Услуга не найдена",
-        description: service?.seoDescription || "Описание услуги недоступно.",
+        title: seoTitle,
+        description: service.seoDescription ? `${service.seoDescription} ${city ? `Работаем ${city.nameLocative.toLowerCase()}.` : ''}` : `Профессиональные услуги: ${seoTitle}`,
     };
 }
 
-export default async function ServiceDetailPage({ params }: Props) {
-    const { slug } = await params;
-
-    const { data } = await fetchAPI('/services', {
-        filters: { slug: { $eq: slug } },
+export default async function DynamicServicePage({ params }: { params: { slug: string, params: string[] } }) {
+    const serviceRes = await fetchAPI('/services', {
+        filters: { slug: { $eq: params.slug } },
         populate: ['employees', 'projects', 'reviews']
     });
 
-    const service = data?.[0];
+    const service = serviceRes?.data?.[0];
+    if (!service) notFound();
 
-    if (!service) {
-        return (
-            <div className="min-h-screen flex flex-col items-center justify-center bg-background text-foreground">
-                <h1 className="text-4xl font-light mb-8">Услуга не найдена</h1>
-                <Link href="/services" className="border-b border-black pb-1 uppercase tracking-widest text-sm">Вернуться к списку услуг</Link>
-            </div>
-        );
+    const resolved = await resolveParams(params.params);
+    const { category, city } = resolved;
+
+    if (!category && !city) notFound();
+
+    let dynamicTitle = service.title;
+    let dynamicDesc = service.seoDescription || '';
+
+    const seoLocative = city ? (city.nameLocative || 'в Москве') : '';
+
+    if (category && city) {
+        if (category.type === 'room') dynamicTitle = `${service.title}: ${category.name} ${seoLocative}`;
+        else if (category.type === 'property_type') dynamicTitle = `${service.title} в ${category.name.toLowerCase()}х ${seoLocative}`;
+        else if (category.type === 'style') dynamicTitle = `${category.name}: ${service.title} ${seoLocative}`;
+
+        dynamicDesc = `Комплексная реализация проекта типа «${category.name.toLowerCase()}» с учетом всех особенностей недвижимости ${seoLocative.toLowerCase()}. ${city.seoText || ''} ${dynamicDesc}`;
+    }
+    else if (category) {
+        if (category.type === 'room') dynamicTitle = `${service.title}: ${category.name}`;
+        else if (category.type === 'property_type') dynamicTitle = `${service.title} в ${category.name.toLowerCase()}х`;
+        else if (category.type === 'style') dynamicTitle = `${category.name}: ${service.title}`;
+
+        dynamicDesc = `Специализированное решение для проекта типа «${category.name.toLowerCase()}». ${dynamicDesc}`;
+    }
+    else if (city) {
+        dynamicTitle = `${service.title} ${seoLocative}`;
+        dynamicDesc = `${city.seoText || ''} ${dynamicDesc}`;
     }
 
     return (
         <div className="min-h-screen pt-32 pb-24 bg-background selection:bg-black selection:text-white text-foreground">
-
-
             <main className="container mx-auto px-6 relative z-10 pt-16">
                 <div className="mb-24 flex flex-col md:flex-row justify-between items-start md:items-end gap-12 pb-16 border-b border-black">
                     <div className="max-w-2xl">
                         <div className="text-sm font-medium tracking-widest text-muted mb-8 uppercase flex gap-4">
-                            <span>ARQO / Направления</span>
+                            <Link href="/services" className="hover:text-black transition-colors">Спектр услуг</Link>
+                            {category && <span>/ {category.name}</span>}
+                            {city && <span>/ {city.name}</span>}
                         </div>
                         <h1 className="text-5xl md:text-7xl font-light leading-none tracking-tight uppercase mb-8">
-                            {service.title}
+                            {dynamicTitle}
                         </h1>
                         <p className="text-xl font-light leading-relaxed text-foreground/80 max-w-xl">
-                            {service.seoDescription}
+                            {dynamicDesc}
                         </p>
                     </div>
 

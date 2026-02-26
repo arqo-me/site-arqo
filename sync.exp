@@ -1,0 +1,14 @@
+#!/usr/bin/expect -f
+set timeout -1
+set password "G9ekfLKG&Ef8"
+set ip "45.146.164.46"
+
+spawn ssh -o StrictHostKeyChecking=no root@$ip "mkdir -p /opt/site-arqo"
+expect "*?assword:*"
+send "$password\r"
+expect eof
+
+spawn rsync -avz --exclude node_modules --exclude .git --exclude .next --exclude build --exclude backend/.tmp --exclude frontend/.next -e "ssh -o StrictHostKeyChecking=no" /Users/ruslan/projects/site-arqo/ root@$ip:/opt/site-arqo/
+expect "*?assword:*"
+send "$password\r"
+expect eof

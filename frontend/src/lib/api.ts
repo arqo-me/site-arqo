@@ -15,7 +15,8 @@ export async function fetchAPI(path: string, urlParamsObject = {}, options = {})
             { encodeValuesOnly: true }
         );
 
-        const requestUrl = `http://127.0.0.1:1337/api${path}${queryString ? `?${queryString}` : ''}`;
+        const baseUrl = process.env.NEXT_PUBLIC_STRAPI_API_URL || 'http://127.0.0.1:1337';
+        const requestUrl = `${baseUrl}/api${path}${queryString ? `?${queryString}` : ''}`;
 
         console.log(`Fetching from: ${requestUrl}`);
 

@@ -42,14 +42,7 @@ export default async function ProjectDetailPage({ params }: Props) {
 
     return (
         <div className="min-h-screen pt-32 pb-24 bg-background selection:bg-black selection:text-white text-foreground">
-            <header className="fixed top-0 left-0 right-0 z-50 text-foreground mix-blend-difference invert">
-                <div className="container mx-auto px-6 h-24 flex items-center justify-between">
-                    <Link href="/" className="text-3xl font-light tracking-[0.2em] uppercase">ARQO</Link>
-                    <nav className="hidden md:flex gap-12 text-sm uppercase tracking-widest font-light">
-                        <Link href="/projects" className="flex items-center gap-2 hover:opacity-70 transition-opacity"><ArrowLeft className="w-4 h-4" /> Назад к проектам</Link>
-                    </nav>
-                </div>
-            </header>
+            
 
             <main className="container mx-auto relative z-10 pt-16">
 

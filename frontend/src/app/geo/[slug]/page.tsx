@@ -1,6 +1,6 @@
 import { fetchAPI } from "@/lib/api";
 import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import type { Metadata, ResolvingMetadata } from "next";
 
 type Props = {
@@ -25,12 +25,12 @@ export default async function GeoLandingPage({ params }: Props) {
     const [cityRes, servicesRes, projectsRes] = await Promise.all([
         fetchAPI('/cities', { filters: { slug: { $eq: slug } } }),
         fetchAPI('/services'),
-        fetchAPI('/projects', { populate: ['service'] }) // fetch all, ideally filter by city later
+        fetchAPI('/projects', { populate: ['service'] })
     ]);
 
     const city = cityRes.data?.[0];
-    const services = servicesRes.data;
-    const projects = projectsRes.data?.slice(0, 4); // Limit to 4 for the landing page grid
+    const services = servicesRes.data || [];
+    const projects = projectsRes.data?.slice(0, 4);
 
     if (!city) {
         return (
@@ -41,16 +41,11 @@ export default async function GeoLandingPage({ params }: Props) {
         );
     }
 
+    const loc = city.nameLocative || ('в ' + city.name);
+
     return (
         <div className="min-h-screen pt-32 pb-24 bg-background selection:bg-black selection:text-white text-foreground">
-            <header className="fixed top-0 left-0 right-0 z-50 text-foreground mix-blend-difference invert">
-                <div className="container mx-auto px-6 h-24 flex items-center justify-between">
-                    <Link href="/" className="text-3xl font-light tracking-[0.2em] uppercase">ARQO</Link>
-                    <nav className="hidden md:flex gap-12 text-sm uppercase tracking-widest font-light">
-                        <Link href="/" className="flex items-center gap-2 hover:opacity-70 transition-opacity"><ArrowLeft className="w-4 h-4" /> На главную</Link>
-                    </nav>
-                </div>
-            </header>
+            
 
             <main className="container mx-auto relative z-10 pt-16">
                 {/* Hyperlocal Hero */}
@@ -60,15 +55,37 @@ export default async function GeoLandingPage({ params }: Props) {
                         <span className="opacity-40">{city.name}</span>
                     </div>
                     <h1 className="text-[7vw] md:text-[6vw] leading-[0.9] font-light tracking-tighter uppercase mb-12 max-w-5xl">
-                        Премиальный интерьер <br />
-                        <span className="opacity-50">в {city.name}</span>
+                        Дизайн и ремонт <br />
+                        <span className="opacity-50">{loc}</span>
                     </h1>
                     <p className="text-2xl font-light leading-relaxed text-foreground/80 max-w-3xl">
                         {city.seoText}
                     </p>
                 </div>
 
-                {/* Proof of Work - Local Projects (Mockup) */}
+                {/* Services available in this location */}
+                {services.length > 0 && (
+                    <section className="px-6 mb-24">
+                        <h2 className="text-xs font-medium tracking-widest text-muted uppercase mb-12">Наши услуги {loc}</h2>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-0 border-t border-black">
+                            {services.map((service: any, index: number) => (
+                                <Link
+                                    href={`/services/${service.slug}/${city.slug}`}
+                                    key={service.documentId}
+                                    className={`group flex justify-between items-center p-8 border-b border-black md:border-r hover:bg-black hover:text-white transition-colors duration-500 ${index % 2 === 1 ? 'md:border-r-0' : ''}`}
+                                >
+                                    <div>
+                                        <h3 className="text-xl font-light tracking-tight uppercase mb-1">{service.title}</h3>
+                                        <span className="text-xs text-muted uppercase tracking-widest group-hover:text-white/60">{service.pricingData?.basePrice || 'По запросу'}</span>
+                                    </div>
+                                    <ArrowRight strokeWidth={1} className="w-5 h-5 opacity-0 group-hover:opacity-100 transition-opacity" />
+                                </Link>
+                            ))}
+                        </div>
+                    </section>
+                )}
+
+                {/* Proof of Work - Local Projects */}
                 <section className="px-6 mb-32">
                     <h2 className="text-3xl font-light tracking-tight uppercase mb-12">Реализованные объекты ARQO</h2>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
@@ -88,7 +105,7 @@ export default async function GeoLandingPage({ params }: Props) {
 
                 {/* Call to Action specific to Location */}
                 <div className="px-6 py-24 bg-black text-white text-center">
-                    <h2 className="text-4xl md:text-5xl font-light uppercase tracking-tight mb-8">Планируете ремонт в {city.name}?</h2>
+                    <h2 className="text-4xl md:text-5xl font-light uppercase tracking-tight mb-8">Планируете ремонт {loc}?</h2>
                     <p className="text-lg opacity-70 mb-12 max-w-2xl mx-auto font-light">Запишитесь на встречу с нашими архитекторами. Мы проконсультируем по планировкам и техническим регламентам ваших жилых комплексов.</p>
                     <Link href="/contacts" className="inline-block border border-white px-8 py-4 uppercase tracking-[0.2em] text-sm hover:bg-white hover:text-black transition-colors duration-500">
                         Обсудить проект

@@ -20,6 +20,9 @@
             "type": "uid",
             "targetField": "name"
         },
+        "nameLocative": {
+            "type": "string"
+        },
         "seoText": {
             "type": "text"
         }
