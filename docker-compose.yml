@@ -30,12 +30,12 @@ services:
       dockerfile: Dockerfile
       args:
         # При сборке на сервере сюда нужно будет подставить IP вашего сервера
-        - NEXT_PUBLIC_STRAPI_API_URL=${NEXT_PUBLIC_STRAPI_API_URL:-http://localhost:1337}
+        - NEXT_PUBLIC_STRAPI_API_URL=${NEXT_PUBLIC_STRAPI_API_URL:-http://45.146.164.46:1337}
     container_name: arqo-frontend
     restart: unless-stopped
     ports:
       - "3000:3000"
     environment:
-      - NEXT_PUBLIC_STRAPI_API_URL=${NEXT_PUBLIC_STRAPI_API_URL:-http://localhost:1337}
+      - NEXT_PUBLIC_STRAPI_API_URL=${NEXT_PUBLIC_STRAPI_API_URL:-http://45.146.164.46:1337}
     depends_on:
       - arqo-backend
