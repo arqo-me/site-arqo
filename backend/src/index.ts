@@ -22,6 +22,8 @@ export default {
             { action: 'api::project.project.findOne' },
             { action: 'api::city.city.find' },
             { action: 'api::city.city.findOne' },
+            { action: 'api::service-category.service-category.find' },
+            { action: 'api::service-category.service-category.findOne' },
             { action: 'api::article.article.find' },
             { action: 'api::article.article.findOne' },
             { action: 'api::review.review.find' },
